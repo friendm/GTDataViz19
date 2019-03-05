@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[22]:
+
+
+import pandas as pd
+import numpy as np
+df = pd.read_csv('C:\\Users\\Mike friend\\Desktop\\Full_Crime_Data.csv', sep=',')
+
+
+# In[26]:
+
+
+df.head(10)
+#Modified lat and long cut off each decimal degree at 4 places not rounded to prevent further distortion.
+#this removes about 180 feet of accuracy in each direction but still gives us detailed enough location for census block info
+lat_long=df[['Modified_Lat','Modified_Long']]
+
+
+# In[28]:
+
+
+lat_long.head(10)
+
+
+# In[29]:
+
+
+lat_long=lat_long.drop_duplicates()
+
+
+# In[30]:
+
+
+lat_long.shape
+
+
+# In[74]:
+
+
+test_set=lat_long.head(100)
+
+import requests
+from bs4 import BeautifulSoup
+import time
+storage_dict= {}
+
+
+fcc_string1="https://geo.fcc.gov/api/census/block/find?latitude="
+fcc_string2="&longitude="
+fcc_string3="&showall=true&format=xml"
+for index,row in test_set.iterrows():
+
+    new_url=fcc_string1+str(row[0])+fcc_string2+str(row[1])+fcc_string3
+    page = requests.get(new_url)
+
+    soup = BeautifulSoup(page.text, 'html.parser')
+
+    time.sleep(.25)
+    block=soup.find_all('block')[0]
+    split_value=str(block).split('"')
+    return_value=split_value[3]
+    key=str(row[0])+'_'+str(row[1])
+    storage_dict[key]=return_value
+
+
+# In[75]:
+
+
+print(storage_dict)
+
+
+# In[ ]:
+
+
+
+
