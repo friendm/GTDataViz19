@@ -36,11 +36,12 @@ lat_long=lat_long.drop_duplicates()
 lat_long.shape
 
 
-# In[74]:
+# In[76]:
 
 
-test_set=lat_long.head(100)
-
+# testing before massive data set test_set=lat_long.head(100)
+#Pulls the census block from the FCC app
+'''
 import requests
 from bs4 import BeautifulSoup
 import time
@@ -50,25 +51,103 @@ storage_dict= {}
 fcc_string1="https://geo.fcc.gov/api/census/block/find?latitude="
 fcc_string2="&longitude="
 fcc_string3="&showall=true&format=xml"
-for index,row in test_set.iterrows():
+for index,row in lat_long.iterrows():
 
     new_url=fcc_string1+str(row[0])+fcc_string2+str(row[1])+fcc_string3
     page = requests.get(new_url)
 
     soup = BeautifulSoup(page.text, 'html.parser')
-
+#to stop timeout requests pause for a quarter second
     time.sleep(.25)
     block=soup.find_all('block')[0]
     split_value=str(block).split('"')
     return_value=split_value[3]
     key=str(row[0])+'_'+str(row[1])
     storage_dict[key]=return_value
+    
+'''
 
 
-# In[75]:
+# In[77]:
 
 
-print(storage_dict)
+#new_df_dict = pd.DataFrame.from_dict(storage_dict, orient="index")
+
+
+# In[79]:
+
+
+#new_df_dict.to_csv('C:\\Users\\Mike friend\\Desktop\\census_block_scraped.csv')
+
+
+# In[104]:
+
+
+census_scrape = pd.read_csv('C:\\Users\\Mike friend\\Desktop\\census_block_scraped.csv')
+
+
+# In[105]:
+
+
+df['census_key']=df['Modified_Lat'].map(str)+'_'+df['Modified_Long'].map(str)
+
+
+# In[106]:
+
+
+census_scrape.head(1)
+
+
+# In[107]:
+
+
+df_merged=pd.merge(df,census_scrape, on='census_key')
+
+
+# In[109]:
+
+
+df_cleaned_data=df_merged[['Occur Date','UCR Literal','FIPS']]
+df_cleaned_data.head(2)
+crime_categorization_dict={'LARCENY-NON VEHICLE':'PROP',
+'BURGLARY-NONRES':'PROP',
+'ROBBERY-RESIDENCE':'PERSONAL',
+'LARCENY-FROM VEHICLE':'PROP',
+'BURGLARY-RESIDENCE':'PROP',
+'AUTO THEFT':'PERSONAL',
+'AGG ASSAULT':'PERSONAL',
+'ROBBERY-PEDESTRIAN':'PERSONAL',
+'HOMICIDE':'HOMICIDE',
+'ROBBERY-COMMERCIAL':'PERSONAL',
+'MANSLAUGHTER':'HOMICIDE'
+                          }
+#Map crime types to generalized categories
+df_cleaned_data['crime_cat']=df_cleaned_data['UCR Literal'].map(crime_categorization_dict)
+
+
+# In[110]:
+
+
+
+print(df_cleaned_data.head(3))
+
+
+# In[111]:
+
+
+dummy_variables=pd.get_dummies(df_cleaned_data['crime_cat'])
+
+
+# In[113]:
+
+
+df_cleaned_code=df_cleaned_data.merge(dummy_variables,left_index=True,right_index=True)
+
+
+# In[114]:
+
+
+print(df_cleaned_code.head(3))
 
 
 # In[ ]:
