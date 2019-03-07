@@ -9,7 +9,7 @@ import numpy as np
 df = pd.read_csv('C:\\Users\\Mike friend\\Desktop\\Full_Crime_Data.csv', sep=',')
 
 
-# In[26]:
+# In[119]:
 
 
 df.head(10)
@@ -18,7 +18,7 @@ df.head(10)
 lat_long=df[['Modified_Lat','Modified_Long']]
 
 
-# In[28]:
+# In[120]:
 
 
 lat_long.head(10)
@@ -80,34 +80,34 @@ for index,row in lat_long.iterrows():
 #new_df_dict.to_csv('C:\\Users\\Mike friend\\Desktop\\census_block_scraped.csv')
 
 
-# In[104]:
+# In[121]:
 
 
 census_scrape = pd.read_csv('C:\\Users\\Mike friend\\Desktop\\census_block_scraped.csv')
 
 
-# In[105]:
+# In[122]:
 
 
 df['census_key']=df['Modified_Lat'].map(str)+'_'+df['Modified_Long'].map(str)
 
 
-# In[106]:
+# In[123]:
 
 
 census_scrape.head(1)
 
 
-# In[107]:
+# In[124]:
 
 
 df_merged=pd.merge(df,census_scrape, on='census_key')
 
 
-# In[109]:
+# In[127]:
 
 
-df_cleaned_data=df_merged[['Occur Date','UCR Literal','FIPS']]
+df_cleaned_data=df_merged[['Occur Date','UCR Literal','Tract_block']]
 df_cleaned_data.head(2)
 crime_categorization_dict={'LARCENY-NON VEHICLE':'PROP',
 'BURGLARY-NONRES':'PROP',
@@ -125,29 +125,68 @@ crime_categorization_dict={'LARCENY-NON VEHICLE':'PROP',
 df_cleaned_data['crime_cat']=df_cleaned_data['UCR Literal'].map(crime_categorization_dict)
 
 
-# In[110]:
+# In[128]:
 
 
 
 print(df_cleaned_data.head(3))
 
 
-# In[111]:
+# In[129]:
 
 
 dummy_variables=pd.get_dummies(df_cleaned_data['crime_cat'])
 
 
-# In[113]:
+# In[130]:
 
 
 df_cleaned_code=df_cleaned_data.merge(dummy_variables,left_index=True,right_index=True)
 
 
-# In[114]:
+# In[131]:
 
 
 print(df_cleaned_code.head(3))
+
+
+# In[132]:
+
+
+df_cleaned_code['Occur Date']=pd.to_datetime(df_cleaned_code['Occur Date'])
+
+#link to get census block and tract from fips
+#http://proximityone.com/geo_blocks.htm
+
+
+# In[133]:
+
+
+df_cleaned_code['quarter']=df_cleaned_code['Occur Date'].dt.to_period("Q")
+
+
+# In[134]:
+
+
+df_cleaned_code.head(3)
+
+
+# In[138]:
+
+
+grouped_data=df_cleaned_code.groupby(['Tract_block','quarter'])[["HOMICIDE","PERSONAL","PROP"]].sum()
+
+
+# In[140]:
+
+
+grouped_data.head(10)
+
+
+# In[141]:
+
+
+grouped_data.to_csv('C:\\Users\\Mike friend\\Desktop\\grouped_data.csv')
 
 
 # In[ ]:
