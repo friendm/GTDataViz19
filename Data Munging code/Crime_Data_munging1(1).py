@@ -273,7 +273,7 @@ for k in high_bound:
     
 
 
-# In[ ]:
+# In[46]:
 
 
 import requests
@@ -300,6 +300,18 @@ for k in low_bound:
     print(return_value)
     key=k
     lowbound_dict[key]=return_value
+
+
+# In[49]:
+
+
+import pandas as pd
+
+high = pd.DataFrame.from_dict(highbound_dict, orient="index")
+low = pd.DataFrame.from_dict(lowbound_dict, orient="index")
+
+high.to_csv('C:\\Users\\Mike friend\\Desktop\\high_block_zillow.csv')
+low.to_csv('C:\\Users\\Mike friend\\Desktop\\low_block_zillow.csv')
 
 
 # In[ ]:
