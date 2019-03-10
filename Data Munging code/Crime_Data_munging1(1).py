@@ -189,6 +189,119 @@ grouped_data.head(10)
 grouped_data.to_csv('C:\\Users\\Mike friend\\Desktop\\grouped_data.csv')
 
 
+# In[1]:
+
+
+import shapefile
+
+
+# In[9]:
+
+
+sf = shapefile.Reader("C:\\Users\\Mike friend\\Desktop\\shapedata\\ZillowNeighborhoods-GA")
+
+
+# In[10]:
+
+
+sf.bbox
+
+
+# In[36]:
+
+
+fields = sf.fields
+records=sf.records()
+print(len(records))
+print(fields)
+print(sf.record(15))
+shapes = sf.shapes()
+bbox = shapes[15].bbox
+print(bbox)
+
+
+# In[42]:
+
+
+
+i=0
+high_bound={}
+low_bound={}
+while i<= len(shapes)-1:
+    records=sf.record(i)
+    key=str(records [3])+'_'+str(records [4])
+    bboxes= shapes[i].bbox
+    high_bound[key]=str(bboxes [1])+'_'+str(bboxes [0])
+    low_bound[key]=str(bboxes [3])+'_'+str(bboxes [2])
+    print(i)
+    i=i+1
+
+
+# In[43]:
+
+
+print(high_bound)
+
+
+# In[45]:
+
+
+import requests
+from bs4 import BeautifulSoup
+import time
+highbound_dict= {}
+
+
+fcc_string1="https://geo.fcc.gov/api/census/block/find?latitude="
+fcc_string2="&longitude="
+fcc_string3="&showall=true&format=xml"
+for k in high_bound:
+    value=high_bound[k]
+    lat_long=value.split('_')
+    new_url=fcc_string1+str(lat_long[0])+fcc_string2+str(lat_long[1])+fcc_string3
+    page = requests.get(new_url)
+
+    soup = BeautifulSoup(page.text, 'html.parser')
+#to stop timeout requests pause for a quarter second
+    time.sleep(.25)
+    block=soup.find_all('block')[0]
+    split_value=str(block).split('"')
+    return_value=split_value[3]
+    print(return_value)
+    key=k
+    highbound_dict[key]=return_value
+    
+
+
+# In[ ]:
+
+
+import requests
+from bs4 import BeautifulSoup
+import time
+lowbound_dict= {}
+
+
+fcc_string1="https://geo.fcc.gov/api/census/block/find?latitude="
+fcc_string2="&longitude="
+fcc_string3="&showall=true&format=xml"
+for k in low_bound:
+    value=high_bound[k]
+    lat_long=value.split('_')
+    new_url=fcc_string1+str(lat_long[0])+fcc_string2+str(lat_long[1])+fcc_string3
+    page = requests.get(new_url)
+
+    soup = BeautifulSoup(page.text, 'html.parser')
+#to stop timeout requests pause for a quarter second
+    time.sleep(.25)
+    block=soup.find_all('block')[0]
+    split_value=str(block).split('"')
+    return_value=split_value[3]
+    print(return_value)
+    key=k
+    lowbound_dict[key]=return_value
+
+
 # In[ ]:
 
 
